@@ -16,6 +16,7 @@ pipeline {
         stage('Build') { 
             agent any
             steps {
+                git 'https://github.com/AMMiller/docker-tomcat8.git'
                 sh 'pwd'
             }
         }
