@@ -17,6 +17,7 @@ pipeline {
             agent any
             steps {
                 git 'https://github.com/AMMiller/docker-tomcat8.git'
+                sh 'docker build -t tmcat8-boxfuse .'
                 sh 'pwd'
             }
         }
