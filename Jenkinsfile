@@ -1,26 +1,53 @@
 pipeline {
     agent none
+    environment { 
+        // registry data
+        registry = '35.226.142.211:5000' 
+        registryCredential = 'nexus_deployer' 
+        imageName = "tomcat8-image:${env.BUILD_NUMBER}"
+        dockerImage = '' 
+
+    }
     stages {
         stage('clone project') { 
             agent {
                 docker {
-                    image 'maven-agent:2'
-                    registryCredentialsId 'nexus_deployer'
-                    registryUrl 'http://35.239.228.90:5000/'
+                    image 'maven-agent:latest'
+                    registryCredentialsId "$registryCredential"
+                    registryUrl "$registry"
                 }
             }
             steps {
                 git 'https://github.com/AMMiller/boxfuse.git'
             }
         }
-        stage('Build') { 
+        stage('Get dockerfile') { 
             agent any
             steps {
                 git 'https://github.com/AMMiller/docker-tomcat8.git'
-                sh 'cp -R ./target/hello-1.0  ./tomcat8-boxfuse'
-                sh 'cd tomcat8-boxfuse && docker build -t tomcat8-boxfuse .'
-                sh 'pwd'
             }
         }
+        stage('Build') { 
+            agent any
+            steps {
+                script { 
+                    dockerImage = docker.build registry + '/$imageName'
+                }
+            }
+        }
+        stage('Deploy docker image') { 
+            steps { 
+                script { 
+                    docker.withRegistry( 'http://' + registry, registryCredential ) { 
+                        dockerImage.push() 
+                    }
+                } 
+            }
+        } 
+        stage('Cleaning up') { 
+            steps { 
+                sh 'docker rmi $registry/$imageName'
+            }
+        } 
     }
 }
