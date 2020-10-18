@@ -2,7 +2,7 @@ pipeline {
     agent none
     environment { 
         // registry data
-        registry = '35.226.142.211:5000' 
+        registry = '34.122.111.150:5000' 
         registryCredential = 'nexus_deployer' 
         imageName = "tomcat8-image:${env.BUILD_NUMBER}"
         dockerImage = '' 
