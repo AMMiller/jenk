@@ -6,13 +6,13 @@ pipeline {
         registryCredential = 'nexus_deployer' 
         imageName = "tomcat8-image"
         dockerImage = '' 
-
+        stageServer = 'tcp://35.228.194.187:2375'
     }
     stages {
         stage('clone project') { 
             agent {
                 docker {
-                    image 'maven-agent:latest'
+                    image 'maven-agent'
                     registryCredentialsId "$registryCredential"
                     registryUrl "$registry"
                 }
@@ -49,5 +49,18 @@ pipeline {
                 sh 'docker rmi $registry/$imageName'
             }
         } 
+
+        stage('Run docker tomcat8 container on stage') { 
+            steps { 
+                script {
+                    docker.withServer(stageServer) {
+                        docker.withRegistry('http://' + registry, registryCredential) {
+                            docker.image('$registry/$imageName').run('-p 80:8080 --name $imageName')
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
